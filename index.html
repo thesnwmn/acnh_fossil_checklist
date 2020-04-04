@@ -140,64 +140,48 @@
              * Display updates
              */
 
-            function drawTitle(groupId, name, hasParts) {
+            function drawTitle(group, hasParts) {
 
                 var body, form, label, checkbox;
 
                 checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = groupId;
-                checkbox.classList.add(/*'form-check-input', */'form-checkbox', 'js-title', 'js-group-' + groupId, hasParts ? 'js-has-parts' : 'js-no-parts');
+                checkbox.id = group.id;
+                checkbox.classList.add('form-checkbox', 'js-title', 'js-group-' + group.id, hasParts ? 'js-has-parts' : 'js-no-parts');
 
                 label = document.createElement('label');
-                label.textContent = name;
-                label.htmlFor = groupId;
-                label.classList.add(/*'form-check-label', */'form-label', 'font-weight-bold');
-                label.textContent = name;
-
-                /*form = document.createElement('form');
-                form.classList.add('form-inline');
-                form.appendChild(checkbox);
-                form.appendChild(label);*/
+                label.textContent = group.en;
+                label.htmlFor = group.id;
+                label.classList.add('form-label', 'font-weight-bold');
 
                 body = document.createElement('div');
                 body.classList.add('card-header');
-                //body.appendChild(form);
                 body.appendChild(checkbox);
                 body.appendChild(label);
 
                 checkbox.onchange = function(e) {
-                    titleChanged(e, groupId);
+                    titleChanged(e, group.id);
                 };
 
                 return body;
             }
 
-            function drawPart(groupId, name) {
+            function drawPart(groupId, part) {
 
-                var partId, li, label, checkbox;
-
-                partId = name.toLowerCase().replace(/ |-|'/g, '_');
+                var li, label, checkbox;
 
                 checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = partId;
-                checkbox.classList.add(/*'form-check-input', */'form-checkbox', 'js-part', 'js-group-' + groupId);
+                checkbox.id = part.id;
+                checkbox.classList.add('form-checkbox', 'js-part', 'js-group-' + groupId);
 
                 label = document.createElement('label');
-                label.textContent = name;
-                label.htmlFor = partId;
-                label.classList.add(/*'form-check-label'*/ 'form-label');
-                label.textContent = name;
-
-                /*form = document.createElement('form');
-                form.classList.add('form-inline');
-                form.appendChild(checkbox);
-                form.appendChild(label);*/
+                label.textContent = part.en;
+                label.htmlFor = part.id;
+                label.classList.add('form-label');
 
                 li = document.createElement('li');
                 li.classList.add('list-group-item');
-                //li.appendChild(form);
                 li.appendChild(checkbox);
                 li.appendChild(label);
 
@@ -210,22 +194,19 @@
 
             function drawCard(fossil) {
 
-                var card, groupId, ul;
-
-                groupId = fossil.name.toLowerCase().replace(/ |-|'/g, '_');
+                var card, ul;
 
                 card = document.createElement('div');
                 card.classList.add('card', 'm-3');
-                card.appendChild(drawTitle(groupId, fossil.name, typeof fossil.parts !== 'undefined'));
+                card.appendChild(drawTitle(fossil, typeof fossil.parts !== 'undefined'));
                 
                 if (typeof fossil.parts !== 'undefined') {
 
                     ul = document.createElement('ul');
                     ul.classList.add('list-group', 'list-group-flush');
-                    ul.id = groupId + '-parts';
 
                     fossil.parts.forEach(function(part) {
-                        ul.appendChild(drawPart(groupId, part));
+                        ul.appendChild(drawPart(fossil.id, part));
                     });
 
                     card.appendChild(ul);
@@ -306,128 +287,347 @@
             
             var FOSSILS = [
                 {
-                    name: "Acanthostega"
+                    id: "1",
+                    en: "Acanthostega"
                 },
                 {
-                    name: "Amber"
+                    id: "2",
+                    en: "Amber"
                 },
                 {
-                    name: "Ammonite"
+                    id: "3",
+                    en: "Ammonite"
                 },
                 {
-                    name: "Ankylosaurus",
-                    parts: ["Ankylo Skull", "Ankylo Torso", "Ankylo Tail"]
+                    id: "4",
+                    en: "Ankylosaurus",
+                    parts: [{
+                        id: "4-1",
+                        en: "Ankylo skull"
+                    }, {
+                        id: "4-2",
+                        en: "Ankylo torso"
+                    }, {
+                        id: "4-3",
+                        en: "Ankylo tail"
+                    }]
                 },
                 {
-                    name: "Anomalocaris"
+                    id: "5",
+                    en: "Anomalocaris"
                 },
                 {
-                    name: "Archaeopteryx"
+                    id: "6",
+                    en: "Archaeopteryx"
                 },
                 {
-                    name: "Archelon",
-                    parts: ["Archelon Skull", "Archelon Tail"]
+                    id: "7",
+                    en: "Archelon",
+                    parts: [{
+                        id: "7-1",
+                        en: "Archelon skull"
+                    }, {
+                        id: "7-2",
+                        en: "Archelon tail"
+                    }]
                 },
                 {
-                    name: "Australopith"
+                    id: "8",
+                    en: "Australopithecus"
                 },
                 {
-                    name: "Brachiosaurus",
-                    parts: ["Branchio Skull", "Brachio Chest", "Brachio Pelvis", "Brachio Tail"]
+                    id: "9",
+                    en: "Brachiosaurus",
+                    parts: [{
+                        id: "9-1",
+                        en: "Branchio skull"
+                    }, {
+                        id: "9-2",
+                        en: "Brachio chest"
+                    }, {
+                        id: "9-3",
+                        en: "Brachio pelvis"
+                    }, {
+                        id: "9-4",
+                        en: "Brachio tail"
+                    }]
                 },
                 {
-                    name: "Corprolite"
+                    id: "10",
+                    en: "Corprolite"
                 },
                 {
-                    name: "Deinonychus",
-                    parts: ["Deinony Torso", "Deinony Tail"]
+                    id: "11",
+                    en: "Deinonychus",
+                    parts: [{
+                        id: "11-1",
+                        en: "Deinony torso"
+                    }, {
+                        id: "11-2",
+                        en: "Deinony tail"
+                    }]
                 },
                 {
-                    name: "Dimetrodon",
-                    parts: ["Dimetrodon Skull", "Dimetrodon Torso", "Dimetrodon Tail"]
+                    id: "12",
+                    en: "Dimetrodon",
+                    parts: [{
+                        id: "12-1",
+                        en: "Dimetrodon skull"
+                    }, {
+                        id: "12-2",
+                        en: "Dimetrodon torso"
+                    }, {
+                        id: "12-3",
+                        en: "Dimetrodon tail"
+                    }]
                 },
                 {
-                    name: "Dinosaur Track"
+                    id: "13",
+                    en: "Dinosaur Track"
                 },
                 {
-                    name: "Diplodocus",
-                    parts: ["Diplo Skull", "Diplo Neck", "Diplo Chest", "Diplo Pelvis", "Diplo Tail", "Diplo Tail Tip"]
+                    id: "14",
+                    en: "Diplodocus",
+                    parts: [{
+                        id: "14-1",
+                        en: "Diplo skull"
+                    }, {
+                        id: "14-2",
+                        en: "Diplo neck"
+                    }, {
+                        id: "14-3",
+                        en: "Diplo chest"
+                    }, {
+                        id: "14-4",
+                        en: "Diplo pelvis"
+                    }, {
+                        id: "14-5",
+                        en: "Diplo tail"
+                    }, {
+                        id: "14-6",
+                        en: "Diplo tail tip"
+                    }]
                 },
                 {
-                    name: "Dunkleosteus"
-                },
-
-                {
-                    name: "Eusthenopteron"
+                    id: "15",
+                    en: "Dunkleosteus"
                 },
                 {
-                    name: "Iguanodon",
-                    parts: ["Iguanodon Skull", "Iguanodon Torso", "Iguanodon Tail"]
+                    id: "16",
+                    en: "Eusthenopteron"
                 },
                 {
-                    name: "Juramaia"
+                    id: "17",
+                    en: "Iguanodon",
+                    parts: [{
+                        id: "17-1",
+                        en: "Iguanodon skull"
+                    }, {
+                        id: "17-2",
+                        en: "Iguanodon torso"
+                    }, {
+                        id: "17-3",
+                        en: "Iguanodon tail"
+                    }]
                 },
                 {
-                    name: "Mammoth",
-                    parts: ["Mammoth Skull", "Mammoth Torso"]
+                    id: "18",
+                    en: "Juramaia"
                 },
                 {
-                    name: "Megacerops",
-                    parts: ["Megalo Skull", "Megalo Torso", "Megalo Tail"]
+                    id: "19",
+                    en: "Mammoth",
+                    parts: [{
+                        id: "19-1",
+                        en: "Mammoth skull"
+                    }, {
+                        id: "19-2",
+                        en: "Mammoth torso"
+                    }]
                 },
                 {
-                    name: "Megaloceros",
-                    parts: ["Left Side", "Right Side"]
+                    id: "20",
+                    en: "Megacerops",
+                    parts: [{
+                        id: "20-1",
+                        en: "Megacero skull"
+                    }, {
+                        id: "20-2",
+                        en: "Megacero torso"
+                    }, {
+                        id: "20-3",
+                        en: "Megacero tail"
+                    }]
                 },
                 {
-                    name: "Myllokumingia"
+                    id: "21",
+                    en: "Megaloceros",
+                    parts: [{
+                        id: "21-1",
+                        en: "Megalo left side"
+                    }, {
+                        id: "21-2",
+                        en: "Megalo right side"
+                    }]
                 },
                 {
-                    name: "Ophthalmosaurus",
-                    parts: ["Ophthalmo Skull", "Ophthalmo Torso", "Ophthalmo Tail"]
+                    id: "22",
+                    en: "Myllokumingia"
                 },
                 {
-                    name: "Pachycephalosaurus",
-                    parts: ["Pachy Skull", "Pachy Torso", "Pachy Tail"]
+                    id: "23",
+                    en: "Ophthalmosaurus",
+                    parts: [{
+                        id: "23-1",
+                        en: "Ophthalmo skull"
+                    }, {
+                        id: "23-2",
+                        en: "Ophthalmo torso"
+                    }, {
+                        id: "23-3",
+                        en: "Ophthalmo tail"
+                    }]
                 },
                 {
-                    name: "Parasaurolophus",
-                    parts: ["Parasaur Skull", "Parasaur Torso", "Parasaur Tail"]
+                    id: "24",
+                    en: "Pachycephalosaurus",
+                    parts: [{
+                        id: "24-1",
+                        en: "Pachy skull"
+                    }, {
+                        id: "24-2",
+                        en: "Pachy torso"
+                    }, {
+                        id: "24-3",
+                        en: "Pachy tail"
+                    }]
                 },
                 {
-                    name: "Plesiosaurus",
-                    parts: ["Plesio Skull", "Plesio Neck", "Plesio Torso"]
+                    id: "25",
+                    en: "Parasaurolophus",
+                    parts: [{
+                        id: "25-1",
+                        en: "Parasaur skull"
+                    }, {
+                        id: "25-2",
+                        en: "Parasaur torso"
+                    }, {
+                        id: "25-3",
+                        en: "Parasaur tail"
+                    }]
                 },
                 {
-                    name: "Pteranodon",
-                    parts: ["Ptera Body", "Left Ptera Wing", "Right Ptera Wing"]
+                    id: "26",
+                    en: "Plesiosaurus",
+                    parts: [{
+                        id: "26-1",
+                        en: "Plesio skull"
+                    }, {
+                        id: "26-2",
+                        en: "Plesio neck",
+                    }, {
+                        id: "26-3",
+                        en: "Plesio torso"
+                    }]
                 },
                 {
-                    name: "Quetzalcoatlus",
-                    parts: ["Quetzal Torso", "Left Quetzal Wing", "Right Quetzal Wing"]
+                    id: "27",
+                    en: "Pteranodon",
+                    parts: [{
+                        id: "27-1",
+                        en: "Ptera body"
+                    }, {
+                        id: "27-2",
+                        en: "Left ptera wing"
+                    }, {
+                        id: "27-3",
+                        en: "Right ptera wing"
+                    }]
                 },
                 {
-                    name: "Sabertooth Tiger",
-                    parts: ["Sabertooth Skull", "Sabertooth Torso"]
+                    id: "28",
+                    en: "Quetzalcoatlus",
+                    parts: [{
+                        id: "28-1",
+                        en: "Quetzal torso"
+                    }, {
+                        id: "28-2",
+                        en: "Left quetzal wing"
+                    }, {
+                        id: "28-3",
+                        en: "Right quetzal wing"
+                    }]
                 },
                 {
-                    name: "Shark-Tooth Pattern"
+                    id: "29",
+                    en: "Sabertooth Tiger",
+                    parts: [{
+                        id: "29-1",
+                        en: "Sabertooth skull"
+                    }, {
+                        id: "29-2",
+                        en: "Sabertooth torso"
+                    }]
                 },
                 {
-                    name: "Spinosaurus",
-                    parts: ["Spino Skull", "Spino Torso", "Spino Tail"]
+                    id: "30",
+                    en: "Shark-Tooth Pattern"
                 },
                 {
-                    name: "Stegosaurus",
-                    parts: ["Stego Skull", "Stego Torso", "Stego Tail"]
+                    id: "31",
+                    en: "Spinosaurus",
+                    parts: [{
+                        id: "31-1",
+                        en: "Spino skull"
+                    }, {
+                        id: "31-2",
+                        en: "Spino torso"
+                    }, {
+                        id: "31-3",
+                        en: "Spino tail"
+                    }]
                 },
                 {
-                    name: "Tyrannosaurus Rex",
-                    parts: ["T. Rex Skull", "T. Rex Torso", "T. Rex Tail"]
+                    id: "32",
+                    en: "Stegosaurus",
+                    parts: [{
+                        id: "32-1",
+                        en: "Stego skull"
+                    }, {
+                        id: "32-2",
+                        en: "Stego torso"
+                    }, {
+                        id: "32-3",
+                        en: "Stego tail"
+                    }]
                 },
                 {
-                    name: "Triceratops",
-                    parts: ["Tricera Skull", "Tricera Torso", "Tricera Tail"]
+                    id: "33",
+                    en: "Tyrannosaurus Rex",
+                    parts: [{
+                        id: "33-1",
+                        en: "T. Rex skull"
+                    }, {
+                        id: "33-2",
+                        en: "T. Rex torso"
+                    }, {
+                        id: "33-3",
+                        en: "T. Rex tail"
+                    }]
+                },
+                {
+                    id: "34",
+                    en: "Triceratops",
+                    parts: [{
+                        id: "34-1",
+                        en: "Tricera skull"
+                    }, {
+                        id: "34-2",
+                        en: "Tricera torso"
+                    }, {
+                        id: "34-3",
+                        en: "Tricera tail"
+                    }]
                 }
             ];
         </script>

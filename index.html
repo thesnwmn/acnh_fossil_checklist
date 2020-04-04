@@ -1,0 +1,439 @@
+<html>
+    <head>
+
+        <title>ACNH Fossil Checklist</title>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <style>
+
+            .spacer {
+                height: 70px;
+                content: "";
+            }
+        
+            body {
+                min-width: 500px;   
+                width: auto !important;
+            }
+
+            /*form {
+                margin-block-end: 0;
+            }*/
+            
+            li > .form-checkbox {
+                margin-left: 2em;
+            }
+
+            .form-label {
+                margin-left: 1em;
+                margin-bottom: 0;
+            }
+
+            footer {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+            }
+        </style>
+
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-md navbar-dark bg-light fixed-top bg-dark">
+            <a class="navbar-brand" href="#">Fossils</a>
+        </nav>
+        <div class="spacer"></div>
+        <div class="container" id='content'></div>
+        <footer id='footer' class="footer bg-secondary text-white invisible">
+            <div class="container py-3">
+                <div>
+                    This site uses local storage to record your fossil selections between visits.
+                    All data is kept on your device and never transmitted to a remote location.
+                    Rejecting will reduce funtionality of the site.
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-success" onclick="acceptStorage()">Accept</button>
+                    <button type="button" class="btn btn-dark ml-1" onclick="rejectStorage()">Reject</button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+      
+        <script>
+
+            function titleChanged(e, groupId) {
+                var parts = document.querySelectorAll('.js-part.js-group-' + groupId);
+                if (parts.length > 0) {
+                    parts.forEach(function(part) {
+                        part.checked = e.target.checked;
+                    });
+                }
+                updateStorage();
+            }
+
+            function partChanged(e, groupId) {
+                var title = document.querySelector('.js-title.js-group-' + groupId);
+                if (e.target.checked !== true) {
+                    title.checked = false;
+                } else {
+                    var allChecked = true;
+                    document.querySelectorAll('.js-part.js-group-' + groupId).forEach(function(part) {
+                        if (part.checked !== true) {
+                            allChecked = false;
+                        }
+                    });
+                    title.checked = allChecked;
+                }
+                updateStorage();
+            }
+
+            function drawStorage() {
+                var fossils = retrieveFossils();
+                document.querySelectorAll('.js-title.js-no-parts').forEach(function(checkbox) {
+                    if (fossils.indexOf(checkbox.id) !== -1) {
+                        checkbox.checked = true;
+                    }
+                });
+                document.querySelectorAll('.js-part').forEach(function(checkbox) {
+                    if (fossils.indexOf(checkbox.id) !== -1) {
+                        checkbox.checked = true;
+                    }
+                });
+                document.querySelectorAll('.js-title.js-has-parts').forEach(function(title) {
+                    var allChecked = true;
+                    var parts = document.querySelectorAll('.js-part.js-group-' + title.id);
+                    if (parts.length > 0) {
+                        parts.forEach(function(part) {
+                            if (part.checked !== true) {
+                                allChecked = false;
+                            }
+                        });
+                    }
+                    title.checked = allChecked;
+                });
+            }
+
+            function updateStorage() {
+                if (hasAcceptedStorage()) {
+                    var data = [];
+                    document.querySelectorAll('.js-title.js-no-parts').forEach(function(title) {
+                        if (title.checked === true) {
+                            data.push(title.id);
+                        }
+                    });
+                    document.querySelectorAll('.js-part').forEach(function(part) {
+                        if (part.checked === true) {
+                            data.push(part.id);
+                        }
+                    });
+                    storeFossils(data);
+                }
+            }
+
+            /**
+             * Display updates
+             */
+
+            function drawTitle(groupId, name, hasParts) {
+
+                var body, form, label, checkbox;
+
+                checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = groupId;
+                checkbox.classList.add(/*'form-check-input', */'form-checkbox', 'js-title', 'js-group-' + groupId, hasParts ? 'js-has-parts' : 'js-no-parts');
+
+                label = document.createElement('label');
+                label.textContent = name;
+                label.htmlFor = groupId;
+                label.classList.add(/*'form-check-label', */'form-label', 'font-weight-bold');
+                label.textContent = name;
+
+                /*form = document.createElement('form');
+                form.classList.add('form-inline');
+                form.appendChild(checkbox);
+                form.appendChild(label);*/
+
+                body = document.createElement('div');
+                body.classList.add('card-header');
+                //body.appendChild(form);
+                body.appendChild(checkbox);
+                body.appendChild(label);
+
+                checkbox.onchange = function(e) {
+                    titleChanged(e, groupId);
+                };
+
+                return body;
+            }
+
+            function drawPart(groupId, name) {
+
+                var partId, li, label, checkbox;
+
+                partId = name.toLowerCase().replace(/ |-|'/g, '_');
+
+                checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = partId;
+                checkbox.classList.add(/*'form-check-input', */'form-checkbox', 'js-part', 'js-group-' + groupId);
+
+                label = document.createElement('label');
+                label.textContent = name;
+                label.htmlFor = partId;
+                label.classList.add(/*'form-check-label'*/ 'form-label');
+                label.textContent = name;
+
+                /*form = document.createElement('form');
+                form.classList.add('form-inline');
+                form.appendChild(checkbox);
+                form.appendChild(label);*/
+
+                li = document.createElement('li');
+                li.classList.add('list-group-item');
+                //li.appendChild(form);
+                li.appendChild(checkbox);
+                li.appendChild(label);
+
+                checkbox.onchange = function(e) {
+                    partChanged(e, groupId);
+                };
+
+                return li;
+            }
+
+            function drawCard(fossil) {
+
+                var card, groupId, ul;
+
+                groupId = fossil.name.toLowerCase().replace(/ |-|'/g, '_');
+
+                card = document.createElement('div');
+                card.classList.add('card', 'm-3');
+                card.appendChild(drawTitle(groupId, fossil.name, typeof fossil.parts !== 'undefined'));
+                
+                if (typeof fossil.parts !== 'undefined') {
+
+                    ul = document.createElement('ul');
+                    ul.classList.add('list-group', 'list-group-flush');
+                    ul.id = groupId + '-parts';
+
+                    fossil.parts.forEach(function(part) {
+                        ul.appendChild(drawPart(groupId, part));
+                    });
+
+                    card.appendChild(ul);
+                }
+
+                return card;
+            }
+
+            function drawDisplay() {
+
+                var container = document.getElementById('content');
+                container.innerHTML = '';
+
+                FOSSILS.forEach(function(fossil) {
+                    container.appendChild(drawCard(fossil));
+                })
+            }
+
+            /**
+             * Storage functions
+             */
+
+            function hideStoragePrompt() {
+                document.getElementById('footer').classList.add('invisible');
+            }
+
+            function showStoragePrompt() {
+                document.getElementById('footer').classList.remove('invisible');
+            }
+
+            function acceptStorage() {
+                window.localStorage.setItem('accepted_storage', 'true');
+                updateStorage();
+                hideStoragePrompt();
+            }
+
+            function rejectStorage() {
+                window.localStorage.clear();
+                hideStoragePrompt();
+            }
+
+            function hasAcceptedStorage() {
+                return window.localStorage.getItem('accepted_storage') === 'true';
+            }
+
+            function storeFossils(parts) {
+                if (hasAcceptedStorage()) {
+                    window.localStorage.setItem('fossils', JSON.stringify(parts));
+                }
+            }
+
+            function retrieveFossils() {
+                var result;
+                if (hasAcceptedStorage()) {
+                    result = JSON.parse(window.localStorage.getItem('fossils'));
+                }
+                if (typeof result === 'undefined' || result === null) {
+                    result = [];
+                }
+                return result;
+            }
+
+            /**
+             * Initialisation
+             */
+
+            window.onload = function() {
+
+                drawDisplay();
+
+                if (hasAcceptedStorage()) {
+                    hideStoragePrompt();
+                    drawStorage();
+                } else {
+                    showStoragePrompt();
+                }
+            };
+            
+            var FOSSILS = [
+                {
+                    name: "Acanthostega"
+                },
+                {
+                    name: "Amber"
+                },
+                {
+                    name: "Ammonite"
+                },
+                {
+                    name: "Ankylosaurus",
+                    parts: ["Ankylo Skull", "Ankylo Torso", "Ankylo Tail"]
+                },
+                {
+                    name: "Anomalocaris"
+                },
+                {
+                    name: "Archaeopteryx"
+                },
+                {
+                    name: "Archelon",
+                    parts: ["Archelon Skull", "Archelon Tail"]
+                },
+                {
+                    name: "Australopith"
+                },
+                {
+                    name: "Brachiosaurus",
+                    parts: ["Branchio Skull", "Brachio Chest", "Brachio Pelvis", "Brachio Tail"]
+                },
+                {
+                    name: "Corprolite"
+                },
+                {
+                    name: "Deinonychus",
+                    parts: ["Deinony Torso", "Deinony Tail"]
+                },
+                {
+                    name: "Dimetrodon",
+                    parts: ["Dimetrodon Skull", "Dimetrodon Torso", "Dimetrodon Tail"]
+                },
+                {
+                    name: "Dinosaur Track"
+                },
+                {
+                    name: "Diplodocus",
+                    parts: ["Diplo Skull", "Diplo Neck", "Diplo Chest", "Diplo Pelvis", "Diplo Tail", "Diplo Tail Tip"]
+                },
+                {
+                    name: "Dunkleosteus"
+                },
+
+                {
+                    name: "Eusthenopteron"
+                },
+                {
+                    name: "Iguanodon",
+                    parts: ["Iguanodon Skull", "Iguanodon Torso", "Iguanodon Tail"]
+                },
+                {
+                    name: "Juramaia"
+                },
+                {
+                    name: "Mammoth",
+                    parts: ["Mammoth Skull", "Mammoth Torso"]
+                },
+                {
+                    name: "Megacerops",
+                    parts: ["Megalo Skull", "Megalo Torso", "Megalo Tail"]
+                },
+                {
+                    name: "Megaloceros",
+                    parts: ["Left Side", "Right Side"]
+                },
+                {
+                    name: "Myllokumingia"
+                },
+                {
+                    name: "Ophthalmosaurus",
+                    parts: ["Ophthalmo Skull", "Ophthalmo Torso", "Ophthalmo Tail"]
+                },
+                {
+                    name: "Pachycephalosaurus",
+                    parts: ["Pachy Skull", "Pachy Torso", "Pachy Tail"]
+                },
+                {
+                    name: "Parasaurolophus",
+                    parts: ["Parasaur Skull", "Parasaur Torso", "Parasaur Tail"]
+                },
+                {
+                    name: "Plesiosaurus",
+                    parts: ["Plesio Skull", "Plesio Neck", "Plesio Torso"]
+                },
+                {
+                    name: "Pteranodon",
+                    parts: ["Ptera Body", "Left Ptera Wing", "Right Ptera Wing"]
+                },
+                {
+                    name: "Quetzalcoatlus",
+                    parts: ["Quetzal Torso", "Left Quetzal Wing", "Right Quetzal Wing"]
+                },
+                {
+                    name: "Sabertooth Tiger",
+                    parts: ["Sabertooth Skull", "Sabertooth Torso"]
+                },
+                {
+                    name: "Shark-Tooth Pattern"
+                },
+                {
+                    name: "Spinosaurus",
+                    parts: ["Spino Skull", "Spino Torso", "Spino Tail"]
+                },
+                {
+                    name: "Stegosaurus",
+                    parts: ["Stego Skull", "Stego Torso", "Stego Tail"]
+                },
+                {
+                    name: "Tyrannosaurus Rex",
+                    parts: ["T. Rex Skull", "T. Rex Torso", "T. Rex Tail"]
+                },
+                {
+                    name: "Triceratops",
+                    parts: ["Tricera Skull", "Tricera Torso", "Tricera Tail"]
+                }
+            ];
+        </script>
+    </body>
+</html>

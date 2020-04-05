@@ -21,13 +21,12 @@
                 min-width: 300px;   
                 width: auto !important;
             }
-            
-            li > .form-checkbox {
-                margin-left: 2em;
+
+            .form-checkbox {
+                margin-right: 1em;
             }
 
             .form-label {
-                margin-left: 1em;
                 margin-bottom: 0;
             }
 
@@ -42,19 +41,22 @@
     <body>
         <nav class="navbar navbar-expand-md navbar-dark bg-light fixed-top bg-dark">
             <a class="navbar-brand" href="#">Fossils</a>
+            <div id='progress' class="progress ml-3 invisible" style="flex-grow: 1">
+                <div id='inner-progress' class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                <span id='outer-progress' class='ml-1'></span>
+            </div>
         </nav>
         <div class="spacer"></div>
         <div class="container" id='content'></div>
         <footer id='footer' class="footer bg-secondary text-white invisible">
             <div class="container py-3">
                 <div>
-                    This site uses local storage to record your fossil selections between visits.
-                    All data is kept on your device and never transmitted to a remote location.
-                    Rejecting will reduce funtionality of the site.
+                    This site requires local storage to record your fossil selections between visits.
+                    Data is kept on your device and never transmitted to a remote location.
+                    Click asccept to enable full site functionality.
                 </div>
                 <div class="mt-3">
                     <button type="button" class="btn btn-success" onclick="acceptStorage()">Accept</button>
-                    <button type="button" class="btn btn-dark ml-1" onclick="rejectStorage()">Reject</button>
                 </div>
             </div>
         </footer>
@@ -75,6 +77,7 @@
                     });
                 }
                 updateStorage();
+                updateProgress();
             }
 
             function partChanged(e, groupId) {
@@ -91,6 +94,7 @@
                     title.checked = allChecked;
                 }
                 updateStorage();
+                updateProgress();
             }
 
             function drawStorage() {
@@ -136,69 +140,87 @@
                 }
             }
 
+
+            function updateProgress() {
+                var count = retrieveFossils().length;
+                var pct = (count / FOSSIL_COUNT) * 100;
+                if (pct > 25) {
+                    document.getElementById('inner-progress').innerHTML = count + '/' + FOSSIL_COUNT;
+                    document.getElementById('outer-progress').innerHTML = '';
+                } else {
+                    document.getElementById('inner-progress').innerHTML = '';
+                    document.getElementById('outer-progress').innerHTML = count + '/' + FOSSIL_COUNT;
+                }
+                document.getElementById('inner-progress').style = "width: " + pct + "%";
+            }
+
             /**
              * Display updates
              */
 
-            function drawTitle(group, hasParts) {
+            function drawTitle(group, hasParts, acceptedStorage) {
 
                 var body, form, label, checkbox;
 
-                checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = group.id;
-                checkbox.classList.add('form-checkbox', 'js-title', 'js-group-' + group.id, hasParts ? 'js-has-parts' : 'js-no-parts');
+                body = document.createElement('div');
+                body.classList.add('card-header');
 
                 label = document.createElement('label');
                 label.textContent = group.en;
-                label.htmlFor = group.id;
                 label.classList.add('form-label', 'font-weight-bold');
 
-                body = document.createElement('div');
-                body.classList.add('card-header');
-                body.appendChild(checkbox);
-                body.appendChild(label);
+                if (acceptedStorage) {
+                    checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = group.id;
+                    checkbox.classList.add('form-checkbox', 'js-title', 'js-group-' + group.id, hasParts ? 'js-has-parts' : 'js-no-parts');
+                    checkbox.onchange = function(e) {
+                        titleChanged(e, group.id);
+                    };
+                    body.appendChild(checkbox);
+                    label.htmlFor = group.id;
+                }
 
-                checkbox.onchange = function(e) {
-                    titleChanged(e, group.id);
-                };
+                body.appendChild(label);
 
                 return body;
             }
 
-            function drawPart(groupId, part) {
+            function drawPart(groupId, part, acceptedStorage) {
 
                 var li, label, checkbox;
 
-                checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = part.id;
-                checkbox.classList.add('form-checkbox', 'js-part', 'js-group-' + groupId);
+                li = document.createElement('li');
+                li.classList.add('list-group-item');
 
                 label = document.createElement('label');
                 label.textContent = part.en;
-                label.htmlFor = part.id;
                 label.classList.add('form-label');
 
-                li = document.createElement('li');
-                li.classList.add('list-group-item');
-                li.appendChild(checkbox);
+                if (acceptedStorage) {
+                    checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = part.id;
+                    checkbox.classList.add('form-checkbox', 'js-part', 'js-group-' + groupId);
+                    checkbox.onchange = function(e) {
+                        partChanged(e, groupId);
+                    };
+                    li.appendChild(checkbox);
+                    label.htmlFor = part.id;
+                }
+                
                 li.appendChild(label);
-
-                checkbox.onchange = function(e) {
-                    partChanged(e, groupId);
-                };
 
                 return li;
             }
 
-            function drawCard(fossil) {
+            function drawCard(fossil, acceptedStorage) {
 
                 var card, ul;
 
                 card = document.createElement('div');
                 card.classList.add('card', 'm-3');
-                card.appendChild(drawTitle(fossil, typeof fossil.parts !== 'undefined'));
+                card.appendChild(drawTitle(fossil, typeof fossil.parts !== 'undefined', acceptedStorage));
                 
                 if (typeof fossil.parts !== 'undefined') {
 
@@ -206,7 +228,7 @@
                     ul.classList.add('list-group', 'list-group-flush');
 
                     fossil.parts.forEach(function(part) {
-                        ul.appendChild(drawPart(fossil.id, part));
+                        ul.appendChild(drawPart(fossil.id, part, acceptedStorage));
                     });
 
                     card.appendChild(ul);
@@ -220,8 +242,10 @@
                 var container = document.getElementById('content');
                 container.innerHTML = '';
 
+                var acceptedStorage = hasAcceptedStorage();
+
                 FOSSILS.forEach(function(fossil) {
-                    container.appendChild(drawCard(fossil));
+                    container.appendChild(drawCard(fossil, acceptedStorage));
                 })
             }
 
@@ -231,20 +255,18 @@
 
             function hideStoragePrompt() {
                 document.getElementById('footer').classList.add('invisible');
+                document.getElementById('progress').classList.remove('invisible');
             }
 
             function showStoragePrompt() {
                 document.getElementById('footer').classList.remove('invisible');
+                document.getElementById('progress').classList.add('invisible');
             }
 
             function acceptStorage() {
                 window.localStorage.setItem('accepted_storage', 'true');
+                drawDisplay();
                 updateStorage();
-                hideStoragePrompt();
-            }
-
-            function rejectStorage() {
-                window.localStorage.clear();
                 hideStoragePrompt();
             }
 
@@ -280,11 +302,12 @@
                 if (hasAcceptedStorage()) {
                     hideStoragePrompt();
                     drawStorage();
+                    updateProgress();
                 } else {
                     showStoragePrompt();
                 }
             };
-            
+
             var FOSSILS = [
                 {
                     id: "1",
@@ -630,6 +653,17 @@
                     }]
                 }
             ];
+            var FOSSIL_COUNT = function() {
+                var count = 0;
+                FOSSILS.forEach(function(fossil) {
+                    if (typeof fossil.parts === "undefined") {
+                        count++;
+                    } else {
+                        count += fossil.parts.length;
+                    }
+                });
+                return count;
+            }();
         </script>
     </body>
 </html>

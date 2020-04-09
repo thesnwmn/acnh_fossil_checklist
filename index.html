@@ -35,6 +35,10 @@
                 bottom: 0;
                 width: 100%;
             }
+
+            .hidden {
+                display: none;
+            }
         </style>
 
     </head>
@@ -47,6 +51,11 @@
             </div>
         </nav>
         <div class="spacer"></div>
+        <div class="container">
+            <button type="button" class="btn btn-primary w-100" data-toggle="modal" data-target="#missingModal">
+                Show missing list
+            </button>
+        </div>
         <div class="container" id='content'></div>
         <footer id='footer' class="footer bg-secondary text-white invisible">
             <div class="container py-3">
@@ -60,6 +69,26 @@
                 </div>
             </div>
         </footer>
+        <!-- Modal -->
+        <div class="modal fade" id="missingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Missing Fossils</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  <ul id="missingList"></ul>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+             
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Optional JavaScript -->
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -70,11 +99,25 @@
         <script>
 
             function titleChanged(e, groupId) {
+                var missingId;
                 var parts = document.querySelectorAll('.js-part.js-group-' + groupId);
                 if (parts.length > 0) {
                     parts.forEach(function(part) {
                         part.checked = e.target.checked;
+                        missingLi = document.getElementById(part.id + '-missing');
+                        if (e.target.checked !== true) {
+                            missingLi.classList.remove('hidden');
+                        } else {
+                            missingLi.classList.add('hidden');
+                        }
                     });
+                } else {
+                    missingLi = document.getElementById(e.target.id + '-missing');
+                    if (e.target.checked !== true) {
+                        missingLi.classList.remove('hidden');
+                    } else {
+                        missingLi.classList.add('hidden');
+                    }
                 }
                 updateStorage();
                 updateProgress();
@@ -82,8 +125,10 @@
 
             function partChanged(e, groupId) {
                 var title = document.querySelector('.js-title.js-group-' + groupId);
+                var missingLi = document.getElementById(e.target.id + '-missing');
                 if (e.target.checked !== true) {
                     title.checked = false;
+                    missingLi.classList.remove('hidden');
                 } else {
                     var allChecked = true;
                     document.querySelectorAll('.js-part.js-group-' + groupId).forEach(function(part) {
@@ -92,6 +137,7 @@
                         }
                     });
                     title.checked = allChecked;
+                    missingLi.classList.add('hidden');
                 }
                 updateStorage();
                 updateProgress();
@@ -120,6 +166,13 @@
                         });
                     }
                     title.checked = allChecked;
+                });
+                document.querySelectorAll('.js-missing').forEach(function(li) {
+                    if (fossils.indexOf(li.id.replace(/-missing/g, '')) !== -1) {
+                        li.classList.add('hidden');
+                    } else {
+                        li.classList.remove('hidden');
+                    }
                 });
             }
 
@@ -214,12 +267,22 @@
                 return li;
             }
 
+            function drawMissing(id, text) {
+                var li = document.createElement("li");
+                li.innerText = text;
+                li.id = id + '-missing';
+                li.classList.add('js-missing');
+                return li;
+            }
+
             function drawCard(fossil, acceptedStorage) {
 
                 var card, ul;
+                
+                var missingList = document.getElementById("missingList");
 
                 card = document.createElement('div');
-                card.classList.add('card', 'm-3');
+                card.classList.add('card', 'my-3');
                 card.appendChild(drawTitle(fossil, typeof fossil.parts !== 'undefined', acceptedStorage));
                 
                 if (typeof fossil.parts !== 'undefined') {
@@ -229,9 +292,12 @@
 
                     fossil.parts.forEach(function(part) {
                         ul.appendChild(drawPart(fossil.id, part, acceptedStorage));
+                        missingList.appendChild(drawMissing(part.id, part.en));
                     });
 
                     card.appendChild(ul);
+                } else {
+                    missingList.appendChild(drawMissing(fossil.id, fossil.en));
                 }
 
                 return card;

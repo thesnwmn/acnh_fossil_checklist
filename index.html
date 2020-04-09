@@ -51,7 +51,7 @@
             </div>
         </nav>
         <div class="spacer"></div>
-        <div class="container">
+        <div class="container" id="missingButton">
             <button type="button" class="btn btn-primary w-100" data-toggle="modal" data-target="#missingModal">
                 Show missing list
             </button>
@@ -69,7 +69,6 @@
                 </div>
             </div>
         </footer>
-        <!-- Modal -->
         <div class="modal fade" id="missingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -322,17 +321,20 @@
             function hideStoragePrompt() {
                 document.getElementById('footer').classList.add('invisible');
                 document.getElementById('progress').classList.remove('invisible');
+                document.getElementById('missingButton').classList.remove('hidden');
             }
 
             function showStoragePrompt() {
                 document.getElementById('footer').classList.remove('invisible');
                 document.getElementById('progress').classList.add('invisible');
+                document.getElementById('missingButton').classList.add('hidden');
             }
 
             function acceptStorage() {
                 window.localStorage.setItem('accepted_storage', 'true');
                 drawDisplay();
                 updateStorage();
+                updateProgress();
                 hideStoragePrompt();
             }
 

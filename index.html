@@ -307,6 +307,9 @@
                 var container = document.getElementById('content');
                 container.innerHTML = '';
 
+                var missingList = document.getElementById('missingList');
+                missingList.innerHTML = '';
+
                 var acceptedStorage = hasAcceptedStorage();
 
                 FOSSILS.forEach(function(fossil) {
